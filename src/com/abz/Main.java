@@ -5,6 +5,8 @@ import com.abz.process.AbzUserMethod;
 import com.abz.serial.SerialComm;
 import com.abz.process.AbzDataFactory;
 
+import java.util.List;
+
 public class Main {
 
     class DataSet extends AbzData {
@@ -21,23 +23,26 @@ public class Main {
     }
 
     public static SerialComm serial;
-    public static AbzDataFactory dataFactory = new AbzDataFactory<>(DataSet.class);
+    public static AbzDataFactory<DataSet> dataFactory = new AbzDataFactory<>(DataSet.class);
+
+    public static String getStringFromByteList(List<Byte> byteList) {
+        byte[] bytes = new byte[byteList.size()];
+        for (int i = 0; i < byteList.size(); i++) bytes[i] = byteList.get(i);
+        return new String(bytes);
+    }
 
     public static void main(String[] args) {
-
-        AbzUserMethod<DataSet> user = dataSet -> {
-
-        };
 
         serial = new SerialComm("COM4");
         serial.setBufferUntil((byte)'}');
         serial.openPort(57600);
-        dataFactory.put(20, user);
+
+        dataFactory.put(20, dataSet -> {
+            /* Do something here */
+        });
 
         serial.addSerialEventHandler(data -> {
-            byte[] bytes = new byte[data.size()];
-            for (int i = 0; i < data.size(); i++) bytes[i] = data.get(i);
-            String cmd = new String(bytes);
+            String cmd = getStringFromByteList(data);
             System.out.println(cmd);
             dataFactory.perform(cmd);
         });
