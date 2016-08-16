@@ -1,51 +1,44 @@
 package com.abz;
 
-import com.abz.process.AbzData;
-import com.abz.process.AbzUserMethod;
 import com.abz.serial.SerialComm;
 import com.abz.process.AbzDataFactory;
 
-import java.util.List;
+import java.util.Arrays;
 
+import static com.abz.Tools.getStringFromByteList;
+
+/**
+ * This class is an example of how to combine <code>SerialComm</code> and <code>AbzDataFactory</code> to make a serial
+ * JSON receiver.
+ *
+ * @author Phan Vu Hoang
+ */
 public class Main {
 
-    class DataSet extends AbzData {
-        private int[] ypr;
-        private int[] xyz;
-        private int[] imr;
-        DataSet() {
-            super();
-            ypr = xyz = imr = new int[3];
-        }
-        public int[] getYpr() { return ypr; }
-        public int[] getXyz() { return xyz; }
-        public int[] getImr() { return imr; }
-    }
+    public static final byte END_OF_FRAME = 10;
+    public static final int BAUD_RATE = 57600;
+    public static final String PORT = "COM7";
 
     public static SerialComm serial;
-    public static AbzDataFactory<DataSet> dataFactory = new AbzDataFactory<>(DataSet.class);
-
-    public static String getStringFromByteList(List<Byte> byteList) {
-        byte[] bytes = new byte[byteList.size()];
-        for (int i = 0; i < byteList.size(); i++) bytes[i] = byteList.get(i);
-        return new String(bytes);
-    }
+    public static AbzDataFactory<DataSetNo1> dataFactory = new AbzDataFactory<>(DataSetNo1.class);
 
     public static void main(String[] args) {
 
-        serial = new SerialComm("COM4");
-        serial.setBufferUntil((byte)'}');
-        serial.openPort(57600);
+        serial = new SerialComm(PORT);
+        serial.setBufferUntil(END_OF_FRAME);
+        serial.openPort(BAUD_RATE);
 
         dataFactory.put(20, dataSet -> {
-            /* Do something here */
+            System.out.println("ID = " + dataSet.getId());
+            System.out.println("YPR = " + Arrays.toString(dataSet.getYpr()));
+            System.out.println("XYZ = " + Arrays.toString(dataSet.getXyz()));
+            System.out.println("IMR = " + Arrays.toString(dataSet.getImr()));
+            System.out.println();
         });
 
         serial.addSerialEventHandler(data -> {
             String cmd = getStringFromByteList(data);
-            System.out.println(cmd);
             dataFactory.perform(cmd);
         });
-
     }
 }
