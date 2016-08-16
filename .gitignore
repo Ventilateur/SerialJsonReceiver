@@ -1,1 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
+.vs
+__vm
+Debug
+.idea
+SerialJsonReceiver.iml
+*.sln
+*.vcxproj
+*.filters
+out
